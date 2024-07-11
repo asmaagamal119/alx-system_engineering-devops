@@ -33,11 +33,20 @@ defaults
         errorfile 503 /etc/haproxy/errors/503.http
         errorfile 504 /etc/haproxy/errors/504.http
 
-backend http_back
+listen 376963-lb-01
+        bind *:80
+        mode http
         balance roundrobin
-        server 337533-web-01 54.160.96.3:80 check
-        server 337533-web-02 100.26.160.56:80 check
+        option forwardfor
+        server 376963-web-02 52.91.121.75:80 check
+        server 376963-web-01 54.164.103.65:80 check
+frontend www-https
+        bind *:80
+        bind *:443 ssl crt /etc/ssl/private/www.yeeloman.tech.pem
+        redirect scheme https code 301 if !{ ssl_fc }
+        default_backend www-backend
 
-frontend http_front
-         bind *:443 ssl crt /etc/letsencrypt/archive/www.nathanim.tech/www.nathanim.tech.pem
-         default_backend http_back
+backend www-backend
+        balance roundrobin
+        server 376963-web-01 54.164.103.65:80 check
+        server 376963-web-02 52.91.121.75:80 check
